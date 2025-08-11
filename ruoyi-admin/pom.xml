@@ -93,6 +93,12 @@
             <artifactId>ruoyi-workflow</artifactId>
         </dependency>
 
+<!--        用户扩展档案管理模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-user-profile</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>
@@ -103,6 +109,8 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+
 
         <!-- skywalking 整合 logback -->
 <!--        <dependency>-->

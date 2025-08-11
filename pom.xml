@@ -357,6 +357,13 @@
                 <version>${revision}</version>
             </dependency>
 
+<!--            用户扩展档案管理模块-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hit-user-profile</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
