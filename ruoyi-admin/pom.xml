@@ -87,16 +87,30 @@
             <artifactId>ruoyi-demo</artifactId>
         </dependency>
 
-        <!--  工作流模块  -->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>ruoyi-workflow</artifactId>
-        </dependency>
+
 
 <!--        用户扩展档案管理模块-->
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>hit-user-profile</artifactId>
+        </dependency>
+
+<!--        技能标签管理模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-skill-tag</artifactId>
+        </dependency>
+
+<!--        用户技能关联模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-user-skill</artifactId>
+        </dependency>
+
+<!--        用户作品集管理模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-user-portfolio</artifactId>
         </dependency>
 
         <dependency>

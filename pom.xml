@@ -364,6 +364,27 @@
                 <version>${revision}</version>
             </dependency>
 
+<!--            技能标签管理模块-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hit-skill-tag</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+<!--            用户技能关联模块-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hit-user-skill</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+<!--            用户作品集管理模块-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hit-user-portfolio</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

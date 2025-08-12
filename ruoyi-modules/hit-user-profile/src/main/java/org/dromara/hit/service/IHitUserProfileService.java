@@ -65,4 +65,11 @@ public interface IHitUserProfileService {
      * @return 是否删除成功
      */
     Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
+
+    /**
+     * 查询当前用户的档案信息
+     *
+     * @return 当前用户档案
+     */
+    HitUserProfileVo queryCurrentUserProfile();
 }

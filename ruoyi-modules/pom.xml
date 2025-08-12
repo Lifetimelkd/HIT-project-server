@@ -16,6 +16,9 @@
         <module>ruoyi-system</module>
         <module>ruoyi-workflow</module>
         <module>hit-user-profile</module>
+        <module>hit-skill-tag</module>
+        <module>hit-user-skill</module>
+        <module>hit-user-portfolio</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

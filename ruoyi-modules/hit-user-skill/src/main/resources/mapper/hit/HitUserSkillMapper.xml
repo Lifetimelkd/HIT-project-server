@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.mapper.HitUserSkillMapper">
+
+    <resultMap type="org.dromara.hit.domain.HitUserSkill" id="HitUserSkillResult">
+        <result property="userSkillId"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="tagId"    column="tag_id"    />
+        <result property="skillLevel"    column="skill_level"    />
+        <result property="isCertified"    column="is_certified"    />
+        <result property="certificateUrl"    column="certificate_url"    />
+        <result property="learningTime"    column="learning_time"    />
+        <result property="projectCount"    column="project_count"    />
+        <result property="skillDescription"    column="self_evaluation"    />
+        <result property="createDept"    column="create_dept"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="tenantId"    column="tenant_id"    />
+    </resultMap>
+
+    <resultMap type="org.dromara.hit.domain.vo.HitUserSkillVo" id="HitUserSkillVoResult">
+        <result property="userSkillId"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="tagId"    column="tag_id"    />
+        <result property="skillLevel"    column="skill_level"    />
+        <result property="isCertified"    column="is_certified"    />
+        <result property="certificateUrl"    column="certificate_url"    />
+        <result property="learningTime"    column="learning_time"    />
+        <result property="projectCount"    column="project_count"    />
+        <result property="skillDescription"    column="self_evaluation"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="tagName"    column="tag_name"    />
+        <result property="tagCategory"    column="tag_category"    />
+    </resultMap>
+
+    <!-- 查询用户技能列表（包含标签信息） -->
+    <select id="selectUserSkillsWithTag" parameterType="Long" resultMap="HitUserSkillVoResult">
+        SELECT 
+            us.id,
+            us.user_id,
+            us.tag_id,
+            us.skill_level,
+            us.is_certified,
+            us.certificate_url,
+            us.learning_time,
+            us.project_count,
+            us.self_evaluation,
+            us.create_time,
+            st.tag_name,
+            st.tag_category
+        FROM hit_user_skill us
+        LEFT JOIN hit_skill_tag st ON us.tag_id = st.tag_id
+        WHERE us.user_id = #{userId}
+        ORDER BY us.create_time DESC
+    </select>
+
+    <!-- 根据标签ID查询用户列表 -->
+    <select id="selectUsersBySkillTag" parameterType="Long" resultMap="HitUserSkillVoResult">
+        SELECT
+            us.id,
+            us.user_id,
+            us.tag_id,
+            us.skill_level,
+            us.is_certified,
+            us.certificate_url,
+            us.learning_time,
+            us.project_count,
+            us.self_evaluation,
+            us.create_time,
+            st.tag_name,
+            st.tag_category
+        FROM hit_user_skill us
+        LEFT JOIN hit_skill_tag st ON us.tag_id = st.tag_id
+        WHERE us.tag_id = #{tagId}
+        ORDER BY us.skill_level DESC, us.create_time DESC
+    </select>
+
+</mapper> 

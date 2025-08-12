@@ -15,6 +15,7 @@ import org.dromara.hit.domain.vo.HitUserProfileVo;
 import org.dromara.hit.domain.HitUserProfile;
 import org.dromara.hit.mapper.HitUserProfileMapper;
 import org.dromara.hit.service.IHitUserProfileService;
+import org.dromara.common.satoken.utils.LoginHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -149,5 +150,18 @@ public class HitUserProfileServiceImpl implements IHitUserProfileService {
             //TODO 做一些业务上的校验,判断是否需要校验
         }
         return baseMapper.deleteByIds(ids) > 0;
+    }
+
+    /**
+     * 查询当前用户的档案信息
+     *
+     * @return 当前用户档案
+     */
+    @Override
+    public HitUserProfileVo queryCurrentUserProfile() {
+        Long currentUserId = LoginHelper.getUserId();
+        LambdaQueryWrapper<HitUserProfile> lqw = Wrappers.lambdaQuery();
+        lqw.eq(HitUserProfile::getUserId, currentUserId);
+        return baseMapper.selectVoOne(lqw);
     }
 }

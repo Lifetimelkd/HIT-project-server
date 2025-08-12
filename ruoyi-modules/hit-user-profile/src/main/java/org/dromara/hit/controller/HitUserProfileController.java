@@ -69,6 +69,15 @@ public class HitUserProfileController extends BaseController {
     }
 
     /**
+     * 获取当前用户的档案信息
+     */
+    @SaCheckPermission("hitUserProfile:userProfile:query")
+    @GetMapping("/current")
+    public R<HitUserProfileVo> getCurrentUserProfile() {
+        return R.ok(hitUserProfileService.queryCurrentUserProfile());
+    }
+
+    /**
      * 新增用户扩展档案
      */
     @SaCheckPermission("hitUserProfile:userProfile:add")
