@@ -248,6 +248,15 @@ public class SysUserController extends BaseController {
     }
 
     /**
+     * 搜索用户（用于项目成员邀请）
+     */
+    @GetMapping("/search")
+    public R<List<SysUserVo>> searchUsers(@RequestParam String keyword) {
+        List<SysUserVo> users = userService.searchUsersByKeyword(keyword);
+        return R.ok(users);
+    }
+
+    /**
      * 根据用户编号获取授权角色
      *
      * @param userId 用户ID

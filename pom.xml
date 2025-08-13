@@ -385,6 +385,13 @@
                 <version>${revision}</version>
             </dependency>
 
+<!--            项目管理模块-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hit-project-management</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

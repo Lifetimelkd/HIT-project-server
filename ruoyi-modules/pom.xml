@@ -19,6 +19,7 @@
         <module>hit-skill-tag</module>
         <module>hit-user-skill</module>
         <module>hit-user-portfolio</module>
+        <module>hit-project-management</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

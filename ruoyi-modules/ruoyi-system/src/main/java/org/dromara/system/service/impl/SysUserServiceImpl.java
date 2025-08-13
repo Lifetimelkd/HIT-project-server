@@ -813,4 +813,33 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             .collect(Collectors.toMap(SysPost::getPostId, SysPost::getPostName));
     }
 
+    /**
+     * 根据关键词搜索用户（用于项目成员邀请）
+     *
+     * @param keyword 搜索关键词（用户名、昵称、邮箱）
+     * @return 用户列表
+     */
+    @Override
+    public List<SysUserVo> searchUsersByKeyword(String keyword) {
+        if (StringUtils.isBlank(keyword)) {
+            return Collections.emptyList();
+        }
+        
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUser::getDelFlag, SystemConstants.NORMAL)
+                .eq(SysUser::getStatus, SystemConstants.NORMAL)
+                .and(w -> w.like(SysUser::getUserName, keyword)
+                        .or()
+                        .like(SysUser::getNickName, keyword)
+                        .or()
+                        .like(SysUser::getEmail, keyword))
+                .orderByAsc(SysUser::getUserId);
+        
+        // 限制返回结果数量，避免返回过多数据
+        wrapper.last("LIMIT 20");
+        
+        List<SysUser> users = baseMapper.selectList(wrapper);
+        return MapstructUtils.convert(users, SysUserVo.class);
+    }
+
 }

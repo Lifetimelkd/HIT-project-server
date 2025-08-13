@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitProjectMemberMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.vo.HitProjectMemberVo" id="HitProjectMemberResult">
+        <result property="memberId"             column="member_id"             />
+        <result property="projectId"            column="project_id"            />
+        <result property="projectName"          column="project_name"          />
+        <result property="userId"               column="user_id"               />
+        <result property="userName"             column="user_name"             />
+        <result property="studentId"            column="student_id"            />
+        <result property="realName"             column="real_name"             />
+        <result property="college"              column="college"               />
+        <result property="major"                column="major"                 />
+        <result property="grade"                column="grade"                 />
+        <result property="roleId"               column="role_id"               />
+        <result property="roleName"             column="role_name"             />
+        <result property="memberRole"           column="member_role"           />
+        <result property="joinTime"             column="join_time"             />
+        <result property="leaveTime"            column="leave_time"            />
+        <result property="memberStatus"         column="member_status"         />
+        <result property="contributionScore"    column="contribution_score"    />
+        <result property="completedTasks"       column="completed_tasks"       />
+        <result property="totalTasks"           column="total_tasks"           />
+        <result property="taskCompletionRate"   column="task_completion_rate"  />
+        <result property="workHours"            column="work_hours"            />
+        <result property="performanceRating"    column="performance_rating"    />
+        <result property="isLeader"             column="is_leader"             />
+        <result property="permissions"          column="permissions"           />
+        <result property="remark"               column="remark"                />
+        <result property="createTime"           column="create_time"           />
+        <result property="updateTime"           column="update_time"           />
+        <result property="contactInfo"          column="contact_info"          />
+        <result property="avatarUrl"            column="avatar_url"            />
+    </resultMap>
+
+    <sql id="selectMemberVo">
+        select 
+            m.member_id, m.project_id, m.user_id, m.role_id, m.member_role,
+            m.join_time, m.leave_time, m.member_status, m.contribution_score,
+            m.completed_tasks, m.total_tasks, m.work_hours, m.performance_rating,
+            m.is_leader, m.permissions, m.remark, m.create_time, m.update_time,
+            p.project_name,
+            u.nick_name as user_name,
+            up.student_id, up.real_name, up.college, up.major, up.grade, 
+            up.phone as contact_info, up.avatar_url,
+            pr.role_name,
+            case 
+                when m.total_tasks > 0 then round(m.completed_tasks * 100.0 / m.total_tasks, 2)
+                else 0.00
+            end as task_completion_rate
+        from hit_project_member m
+        left join hit_project p on m.project_id = p.project_id
+        left join sys_user u on m.user_id = u.user_id
+        left join hit_user_profile up on m.user_id = up.user_id
+        left join hit_project_role pr on m.role_id = pr.role_id
+    </sql>
+
+    <select id="selectMemberWithDetails" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.member_id = #{memberId}
+    </select>
+
+    <select id="selectMembersByProjectId" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.project_id = #{projectId}
+        order by m.is_leader desc, m.join_time asc
+    </select>
+
+    <select id="selectActiveMembersByProjectId" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.project_id = #{projectId}
+        and m.member_status = 'active'
+        order by m.is_leader desc, m.join_time asc
+    </select>
+
+    <select id="selectMembersByUserId" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.user_id = #{userId}
+        order by m.join_time desc
+    </select>
+
+    <select id="selectActiveMembersByUserId" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.user_id = #{userId}
+        and m.member_status = 'active'
+        order by m.join_time desc
+    </select>
+
+    <select id="countMembersByProject" resultType="Long">
+        select count(*)
+        from hit_project_member
+        where project_id = #{projectId}
+        <if test="memberStatus != null and memberStatus != ''">
+            and member_status = #{memberStatus}
+        </if>
+    </select>
+
+    <select id="checkUserIsMember" resultType="Long">
+        select count(*)
+        from hit_project_member
+        where project_id = #{projectId}
+        and user_id = #{userId}
+        and member_status in ('active', 'inactive')
+    </select>
+
+    <select id="checkUserIsLeader" resultType="Long">
+        select count(*)
+        from hit_project_member
+        where project_id = #{projectId}
+        and user_id = #{userId}
+        and is_leader = '1'
+        and member_status = 'active'
+    </select>
+
+    <select id="selectLeadersByProjectId" parameterType="Long" resultMap="HitProjectMemberResult">
+        <include refid="selectMemberVo"/>
+        where m.project_id = #{projectId}
+        and m.is_leader = '1'
+        and m.member_status = 'active'
+        order by m.join_time asc
+    </select>
+
+    <update id="batchUpdateMemberStatus">
+        update hit_project_member
+        set member_status = #{memberStatus},
+            update_time = now()
+            <if test="memberStatus == 'left'">
+            , leave_time = now()
+            </if>
+        where member_id in
+        <foreach collection="memberIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateMemberRole">
+        update hit_project_member
+        set role_id = #{roleId},
+            member_role = #{memberRole},
+            update_time = now()
+        where member_id = #{memberId}
+    </update>
+
+    <update id="updateMemberLeaderStatus">
+        update hit_project_member
+        set is_leader = #{isLeader},
+            update_time = now()
+        where member_id = #{memberId}
+    </update>
+
+    <update id="updateMemberPerformance">
+        update hit_project_member
+        set contribution_score = #{contributionScore},
+            performance_rating = #{performanceRating},
+            update_time = now()
+        where member_id = #{memberId}
+    </update>
+
+    <update id="updateMemberTaskStats">
+        update hit_project_member
+        set completed_tasks = #{completedTasks},
+            total_tasks = #{totalTasks},
+            work_hours = #{workHours},
+            update_time = now()
+        where member_id = #{memberId}
+    </update>
+
+</mapper> 

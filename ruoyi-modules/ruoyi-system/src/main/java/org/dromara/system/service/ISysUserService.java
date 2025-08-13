@@ -85,6 +85,14 @@ public interface ISysUserService {
     List<SysUserVo> selectUserByIds(List<Long> userIds, Long deptId);
 
     /**
+     * 根据关键词搜索用户（用于项目成员邀请）
+     *
+     * @param keyword 搜索关键词（用户名、昵称、邮箱）
+     * @return 用户列表
+     */
+    List<SysUserVo> searchUsersByKeyword(String keyword);
+
+    /**
      * 根据用户ID查询用户所属角色组
      *
      * @param userId 用户ID

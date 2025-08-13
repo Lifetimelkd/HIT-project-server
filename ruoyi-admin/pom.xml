@@ -113,6 +113,12 @@
             <artifactId>hit-user-portfolio</artifactId>
         </dependency>
 
+<!--        项目管理模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-project-management</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitProjectApplicationMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.vo.HitProjectApplicationVo" id="HitProjectApplicationResult">
+        <result property="applicationId"       column="application_id"       />
+        <result property="projectId"           column="project_id"           />
+        <result property="projectName"         column="project_name"         />
+        <result property="userId"              column="user_id"              />
+        <result property="userName"            column="user_name"            />
+        <result property="studentId"           column="student_id"           />
+        <result property="roleId"              column="role_id"              />
+        <result property="roleName"            column="role_name"            />
+        <result property="applicationReason"   column="application_reason"   />
+        <result property="selfIntroduction"    column="self_introduction"    />
+        <result property="relevantExperience"  column="relevant_experience"  />
+        <result property="expectedContribution" column="expected_contribution" />
+        <result property="availableTime"       column="available_time"       />
+        <result property="contactInfo"         column="contact_info"         />
+        <result property="resumeUrl"           column="resume_url"           />
+        <result property="portfolioUrl"        column="portfolio_url"        />
+        <result property="applicationStatus"   column="application_status"   />
+        <result property="reviewResult"        column="review_result"        />
+        <result property="reviewTime"          column="review_time"          />
+        <result property="reviewerId"          column="reviewer_id"          />
+        <result property="reviewerName"        column="reviewer_name"        />
+        <result property="interviewTime"       column="interview_time"       />
+        <result property="interviewNotes"      column="interview_notes"      />
+        <result property="priorityScore"       column="priority_score"       />
+        <result property="createTime"          column="create_time"          />
+        <result property="updateTime"          column="update_time"          />
+    </resultMap>
+
+    <sql id="selectApplicationVo">
+        select 
+            a.application_id, a.project_id, a.user_id, a.role_id,
+            a.application_reason, a.self_introduction, a.relevant_experience, 
+            a.expected_contribution, a.available_time, a.contact_info,
+            a.resume_url, a.portfolio_url, a.application_status, 
+            a.review_result, a.review_time, a.reviewer_id,
+            a.interview_time, a.interview_notes, a.priority_score,
+            a.create_time, a.update_time,
+            p.project_name,
+            u.nick_name as user_name,
+            up.student_id,
+            pr.role_name,
+            ru.nick_name as reviewer_name
+        from hit_project_application a
+        left join hit_project p on a.project_id = p.project_id
+        left join sys_user u on a.user_id = u.user_id
+        left join hit_user_profile up on a.user_id = up.user_id
+        left join hit_project_role pr on a.role_id = pr.role_id
+        left join sys_user ru on a.reviewer_id = ru.user_id
+    </sql>
+
+    <select id="selectApplicationWithDetails" parameterType="Long" resultMap="HitProjectApplicationResult">
+        <include refid="selectApplicationVo"/>
+        where a.application_id = #{applicationId}
+    </select>
+
+    <select id="selectApplicationsByProjectId" parameterType="Long" resultMap="HitProjectApplicationResult">
+        <include refid="selectApplicationVo"/>
+        where a.project_id = #{projectId}
+        order by a.priority_score desc, a.create_time asc
+    </select>
+
+    <select id="selectApplicationsByUserId" parameterType="Long" resultMap="HitProjectApplicationResult">
+        <include refid="selectApplicationVo"/>
+        where a.user_id = #{userId}
+        order by a.create_time desc
+    </select>
+
+    <select id="countPendingApplications" parameterType="Long" resultType="Long">
+        select count(*)
+        from hit_project_application
+        where project_id = #{projectId}
+        and application_status = 'pending'
+    </select>
+
+    <select id="checkUserApplicationExists" resultType="Long">
+        select count(*)
+        from hit_project_application
+        where project_id = #{projectId}
+        and user_id = #{userId}
+        and application_status not in ('rejected', 'withdrawn')
+    </select>
+
+    <update id="batchUpdateApplicationStatus">
+        update hit_project_application
+        set application_status = #{status},
+            reviewer_id = #{reviewerId},
+            review_time = now(),
+            update_time = now()
+        where application_id in
+        <foreach collection="applicationIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper> 

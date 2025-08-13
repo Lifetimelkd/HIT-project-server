@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitProjectMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.HitProject" id="HitProjectResult">
+        <result property="projectId"    column="project_id"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="projectDescription"    column="project_description"    />
+        <result property="projectBackground"    column="project_background"    />
+        <result property="projectGoals"    column="project_goals"    />
+        <result property="expectedOutcome"    column="expected_outcome"    />
+        <result property="coverImage"    column="cover_image"    />
+        <result property="projectType"    column="project_type"    />
+        <result property="projectCategory"    column="project_category"    />
+        <result property="difficultyLevel"    column="difficulty_level"    />
+        <result property="durationType"    column="duration_type"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="teamSizeMin"    column="team_size_min"    />
+        <result property="teamSizeMax"    column="team_size_max"    />
+        <result property="currentMembers"    column="current_members"    />
+        <result property="status"    column="status"    />
+        <result property="recruitmentStatus"    column="recruitment_status"    />
+        <result property="visibility"    column="visibility"    />
+        <result property="approvalMode"    column="approval_mode"    />
+        <result property="viewCount"    column="view_count"    />
+        <result property="likeCount"    column="like_count"    />
+        <result property="collectCount"    column="collect_count"    />
+        <result property="applyCount"    column="apply_count"    />
+        <result property="isFeatured"    column="is_featured"    />
+        <result property="isUrgent"    column="is_urgent"    />
+        <result property="isCredit"    column="is_credit"    />
+        <result property="creatorId"    column="creator_id"    />
+        <result property="mentorId"    column="mentor_id"    />
+        <result property="tenantId"    column="tenant_id"    />
+        <result property="createDept"    column="create_dept"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+    </resultMap>
+
+    <sql id="selectHitProjectVo">
+        select project_id, project_name, project_description, project_background, project_goals, expected_outcome, cover_image, project_type, project_category, difficulty_level, duration_type, start_date, end_date, team_size_min, team_size_max, current_members, status, recruitment_status, visibility, approval_mode, view_count, like_count, collect_count, apply_count, is_featured, is_urgent, is_credit, creator_id, mentor_id, tenant_id, create_dept, create_by, create_time, update_by, update_time, user_id, dept_id from hit_project
+    </sql>
+
+</mapper> 
