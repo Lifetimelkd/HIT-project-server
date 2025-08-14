@@ -18,11 +18,18 @@ import org.dromara.hit.project.service.IHitProjectService;
 import org.dromara.hit.project.controller.HitProjectController.AdminStatisticsVo;
 import org.dromara.hit.project.controller.HitProjectController.TrendDataVo;
 import org.dromara.hit.project.controller.HitProjectController.TypeDistributionVo;
+import org.dromara.hit.project.domain.HitProjectRole;
+import org.dromara.hit.project.domain.HitProjectMember;
+import org.dromara.hit.project.mapper.HitProjectRoleMapper;
+import org.dromara.hit.project.mapper.HitProjectMemberMapper;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 项目信息Service业务层处理
@@ -35,6 +42,8 @@ import java.util.ArrayList;
 public class HitProjectServiceImpl implements IHitProjectService {
 
     private final HitProjectMapper baseMapper;
+    private final HitProjectRoleMapper projectRoleMapper;
+    private final HitProjectMemberMapper projectMemberMapper;
 
     /**
      * 查询项目信息
@@ -84,6 +93,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
      * 新增项目信息
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean insertByBo(HitProjectBo bo) {
         HitProject add = MapstructUtils.convert(bo, HitProject.class);
         // 设置创建者ID为当前登录用户
@@ -110,8 +120,53 @@ public class HitProjectServiceImpl implements IHitProjectService {
         boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
             bo.setProjectId(add.getProjectId());
+            
+            // 项目创建成功后，创建项目负责人角色并将创建者添加为成员
+            try {
+                createLeaderRoleAndAddCreator(add.getProjectId(), add.getCreatorId());
+            } catch (Exception e) {
+                // 记录日志但不影响项目创建
+                System.err.println("创建项目负责人角色或添加创建者为成员失败: " + e.getMessage());
+            }
         }
         return flag;
+    }
+    
+    /**
+     * 创建项目负责人角色并添加创建者为成员
+     */
+    private void createLeaderRoleAndAddCreator(Long projectId, Long creatorId) {
+        // 先创建项目负责人角色
+        HitProjectRole leaderRole = new HitProjectRole();
+        leaderRole.setProjectId(projectId);
+        leaderRole.setRoleName("项目负责人");
+        leaderRole.setRoleDescription("负责项目整体规划和团队管理");
+        leaderRole.setRequiredSkills("[\"项目管理\", \"团队协作\", \"技术架构\"]");
+        leaderRole.setResponsibilities("制定项目计划、协调团队工作、把控项目进度");
+        leaderRole.setRequiredCount(1);
+        leaderRole.setCurrentCount(1); // 创建者自动占用一个位置
+        leaderRole.setIsLeader("1"); // 这是领导角色
+        leaderRole.setPriority(1); // 最高优先级
+        leaderRole.setStatus("0"); // 招募中
+        
+        projectRoleMapper.insert(leaderRole);
+        
+        // 然后创建成员记录
+        HitProjectMember member = new HitProjectMember();
+        member.setProjectId(projectId);
+        member.setUserId(creatorId);
+        member.setRoleId(leaderRole.getRoleId());
+        member.setMemberRole("项目负责人");
+        member.setJoinTime(LocalDateTime.now());
+        member.setMemberStatus("active");
+        member.setContributionScore(BigDecimal.ZERO);
+        member.setCompletedTasks(0);
+        member.setTotalTasks(0);
+        member.setWorkHours(BigDecimal.ZERO);
+        member.setPerformanceRating(BigDecimal.ZERO);
+        member.setIsLeader("1"); // 设置为领导
+        
+        projectMemberMapper.insert(member);
     }
 
     /**

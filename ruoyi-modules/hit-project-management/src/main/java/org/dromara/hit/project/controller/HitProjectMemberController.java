@@ -105,11 +105,14 @@ public class HitProjectMemberController extends BaseController {
     @SaCheckPermission("hit:project:member:add")
     @Log(title = "添加项目成员", businessType = BusinessType.INSERT)
     @PostMapping("/add-member")
-    public R<Void> addProjectMember(@RequestParam Long projectId,
-                                  @RequestParam Long userId,
+    public R<Void> addProjectMember(@RequestParam String projectId,
+                                  @RequestParam String userId,
                                   @RequestParam(required = false) Long roleId,
                                   @RequestParam(required = false) String memberRole) {
-        return toAjax(memberService.addProjectMember(projectId, userId, roleId, memberRole));
+        // 将字符串转换为Long类型
+        Long projectIdLong = Long.parseLong(projectId);
+        Long userIdLong = Long.parseLong(userId);
+        return toAjax(memberService.addProjectMember(projectIdLong, userIdLong, roleId, memberRole));
     }
 
     /**

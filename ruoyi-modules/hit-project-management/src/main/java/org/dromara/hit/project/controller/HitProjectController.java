@@ -76,8 +76,13 @@ public class HitProjectController extends BaseController {
     @Log(title = "项目信息", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
-    public R<Void> add(@Validated(AddGroup.class) @RequestBody HitProjectBo bo) {
-        return toAjax(hitProjectService.insertByBo(bo));
+    public R<Long> add(@Validated(AddGroup.class) @RequestBody HitProjectBo bo) {
+        boolean success = hitProjectService.insertByBo(bo);
+        if (success) {
+            return R.ok("项目创建成功", bo.getProjectId());
+        } else {
+            return R.fail("项目创建失败");
+        }
     }
 
     /**
@@ -141,10 +146,12 @@ public class HitProjectController extends BaseController {
         // 增加浏览次数
         hitProjectService.incrementViewCount(projectId);
         HitProjectVo project = hitProjectService.queryById(projectId);
+        
         // 只返回公开项目
         if (project != null && ("public".equals(project.getVisibility()) || "internal".equals(project.getVisibility()))) {
             return R.ok(project);
         }
+        
         return R.fail("项目不存在或无权限访问");
     }
 

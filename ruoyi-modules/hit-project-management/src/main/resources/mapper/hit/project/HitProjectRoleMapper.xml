@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitProjectRoleMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.vo.HitProjectRoleVo" id="HitProjectRoleResult">
+        <result property="roleId"               column="role_id"               />
+        <result property="projectId"            column="project_id"            />
+        <result property="projectName"          column="project_name"          />
+        <result property="roleName"             column="role_name"             />
+        <result property="roleDescription"      column="role_description"      />
+        <result property="requiredSkills"       column="required_skills"       />
+        <result property="responsibilities"     column="responsibilities"      />
+        <result property="requiredCount"        column="required_count"        />
+        <result property="currentCount"         column="current_count"         />
+        <result property="experienceRequired"   column="experience_required"   />
+        <result property="timeCommitment"       column="time_commitment"       />
+        <result property="isLeader"             column="is_leader"             />
+        <result property="priority"             column="priority"              />
+        <result property="status"               column="status"                />
+        <result property="statusText"           column="status_text"           />
+        <result property="available"            column="available"             />
+        <result property="remainingCount"       column="remaining_count"       />
+        <result property="createTime"           column="create_time"           />
+        <result property="updateTime"           column="update_time"           />
+    </resultMap>
+
+    <sql id="selectRoleVo">
+        <![CDATA[
+        select 
+            r.role_id, r.project_id, r.role_name, r.role_description,
+            r.required_skills, r.responsibilities, r.required_count, r.current_count,
+            r.experience_required, r.time_commitment, r.is_leader, r.priority,
+            r.status, r.create_time, r.update_time,
+            p.project_name,
+            case 
+                when r.status = '0' then '招募中'
+                when r.status = '1' then '已满'
+                when r.status = '2' then '暂停'
+                else '未知'
+            end as status_text,
+            case 
+                when r.status = '0' and r.current_count < r.required_count then 1
+                else 0
+            end as available,
+            case 
+                when r.required_count > r.current_count then r.required_count - r.current_count
+                else 0
+            end as remaining_count
+        from hit_project_role r
+        left join hit_project p on r.project_id = p.project_id
+        ]]>
+    </sql>
+
+    <!-- 查询项目角色详情（包含关联信息） -->
+    <select id="selectRoleWithDetails" parameterType="Long" resultMap="HitProjectRoleResult">
+        <include refid="selectRoleVo"/>
+        where r.role_id = #{roleId}
+    </select>
+
+    <!-- 查询项目的所有角色（包含关联信息） -->
+    <select id="selectRolesByProjectId" parameterType="Long" resultMap="HitProjectRoleResult">
+        <include refid="selectRoleVo"/>
+        where r.project_id = #{projectId}
+        order by r.priority asc, r.create_time asc
+    </select>
+
+    <!-- 查询项目的可申请角色（招募中且未满员） -->
+    <select id="selectAvailableRolesByProjectId" parameterType="Long" resultMap="HitProjectRoleResult">
+        <include refid="selectRoleVo"/>
+        <![CDATA[
+        where r.project_id = #{projectId}
+        and r.status = '0'
+        and r.current_count < r.required_count
+        order by r.priority asc, r.create_time asc
+        ]]>
+    </select>
+
+    <!-- 查询项目的领导角色 -->
+    <select id="selectLeaderRolesByProjectId" parameterType="Long" resultMap="HitProjectRoleResult">
+        <include refid="selectRoleVo"/>
+        where r.project_id = #{projectId}
+        and r.is_leader = '1'
+        order by r.priority asc, r.create_time asc
+    </select>
+
+    <!-- 检查项目角色名称是否存在 -->
+    <select id="checkRoleNameExists" resultType="boolean">
+        select count(1) > 0
+        from hit_project_role
+        where project_id = #{projectId}
+        and role_name = #{roleName}
+        <if test="excludeRoleId != null">
+            and role_id != #{excludeRoleId}
+        </if>
+    </select>
+
+    <!-- 根据角色名称查询项目角色 -->
+    <select id="selectByProjectIdAndRoleName" resultType="org.dromara.hit.project.domain.HitProjectRole">
+        select role_id, project_id, role_name, role_description, required_skills,
+               responsibilities, required_count, current_count, experience_required,
+               time_commitment, is_leader, priority, status,
+               create_time, update_time, create_by, update_by, tenant_id
+        from hit_project_role
+        where project_id = #{projectId}
+        and role_name = #{roleName}
+    </select>
+
+    <!-- 批量更新角色的当前人数 -->
+    <update id="updateCurrentCountByProjectId">
+        update hit_project_role r
+        set r.current_count = (
+            select count(1)
+            from hit_project_member m
+            where m.role_id = r.role_id
+            and m.member_status = 'active'
+        )
+        where r.project_id = #{projectId}
+    </update>
+
+    <!-- 统计项目角色数量 -->
+    <select id="countRolesByProjectId" resultType="Long">
+        select count(1)
+        from hit_project_role
+        where project_id = #{projectId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 获取项目角色的优先级范围 -->
+    <select id="getMaxPriorityByProjectId" resultType="Integer">
+        select COALESCE(max(priority), 0)
+        from hit_project_role
+        where project_id = #{projectId}
+    </select>
+
+</mapper> 
