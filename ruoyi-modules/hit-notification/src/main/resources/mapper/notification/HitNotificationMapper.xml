@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.notification.mapper.HitNotificationMapper">
+
+    <resultMap type="org.dromara.hit.notification.domain.vo.HitNotificationVo" id="HitNotificationResult">
+        <result property="notificationId"    column="notification_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="senderId"    column="sender_id"    />
+        <result property="notificationType"    column="notification_type"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="relatedId"    column="related_id"    />
+        <result property="relatedType"    column="related_type"    />
+        <result property="actionUrl"    column="action_url"    />
+        <result property="isRead"    column="is_read"    />
+        <result property="readTime"    column="read_time"    />
+        <result property="priority"    column="priority"    />
+        <result property="channel"    column="channel"    />
+        <result property="sendStatus"    column="send_status"    />
+        <result property="sendTime"    column="send_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="senderName"    column="sender_name"    />
+        <result property="receiverName"    column="receiver_name"    />
+    </resultMap>
+
+    <!-- 查询用户未读通知列表 -->
+    <select id="selectUnreadNotifications" resultMap="HitNotificationResult">
+        SELECT
+            n.notification_id,
+            n.user_id,
+            n.sender_id,
+            n.notification_type,
+            n.title,
+            n.content,
+            n.related_id,
+            n.related_type,
+            n.action_url,
+            n.is_read,
+            n.read_time,
+            n.priority,
+            n.channel,
+            n.send_status,
+            n.send_time,
+            n.create_time,
+            sender.nick_name as sender_name,
+            receiver.nick_name as receiver_name
+        FROM hit_notification n
+        LEFT JOIN sys_user sender ON n.sender_id = sender.user_id
+        LEFT JOIN sys_user receiver ON n.user_id = receiver.user_id
+        WHERE n.user_id = #{userId}
+        AND n.is_read = '0'
+        ORDER BY n.create_time DESC
+    </select>
+
+    <!-- 查询用户未读通知列表（分页） -->
+    <select id="selectUnreadNotificationsPage" resultMap="HitNotificationResult">
+        SELECT
+            n.notification_id,
+            n.user_id,
+            n.sender_id,
+            n.notification_type,
+            n.title,
+            n.content,
+            n.related_id,
+            n.related_type,
+            n.action_url,
+            n.is_read,
+            n.read_time,
+            n.priority,
+            n.channel,
+            n.send_status,
+            n.send_time,
+            n.create_time,
+            sender.nick_name as sender_name,
+            receiver.nick_name as receiver_name
+        FROM hit_notification n
+        LEFT JOIN sys_user sender ON n.sender_id = sender.user_id
+        LEFT JOIN sys_user receiver ON n.user_id = receiver.user_id
+        WHERE n.user_id = #{userId}
+        AND n.is_read = '0'
+        ORDER BY n.create_time DESC
+    </select>
+
+    <!-- 查询用户已读通知列表 -->
+    <select id="selectReadNotifications" resultMap="HitNotificationResult">
+        SELECT
+            n.notification_id,
+            n.user_id,
+            n.sender_id,
+            n.notification_type,
+            n.title,
+            n.content,
+            n.related_id,
+            n.related_type,
+            n.action_url,
+            n.is_read,
+            n.read_time,
+            n.priority,
+            n.channel,
+            n.send_status,
+            n.send_time,
+            n.create_time,
+            sender.nick_name as sender_name,
+            receiver.nick_name as receiver_name
+        FROM hit_notification n
+        LEFT JOIN sys_user sender ON n.sender_id = sender.user_id
+        LEFT JOIN sys_user receiver ON n.user_id = receiver.user_id
+        WHERE n.user_id = #{userId}
+        AND n.is_read = '1'
+        ORDER BY n.read_time DESC
+    </select>
+
+    <!-- 查询用户已读通知列表（分页） -->
+    <select id="selectReadNotificationsPage" resultMap="HitNotificationResult">
+        SELECT
+            n.notification_id,
+            n.user_id,
+            n.sender_id,
+            n.notification_type,
+            n.title,
+            n.content,
+            n.related_id,
+            n.related_type,
+            n.action_url,
+            n.is_read,
+            n.read_time,
+            n.priority,
+            n.channel,
+            n.send_status,
+            n.send_time,
+            n.create_time,
+            sender.nick_name as sender_name,
+            receiver.nick_name as receiver_name
+        FROM hit_notification n
+        LEFT JOIN sys_user sender ON n.sender_id = sender.user_id
+        LEFT JOIN sys_user receiver ON n.user_id = receiver.user_id
+        WHERE n.user_id = #{userId}
+        AND n.is_read = '1'
+        ORDER BY n.read_time DESC
+    </select>
+
+    <!-- 批量标记通知为已读 -->
+    <update id="batchMarkAsRead">
+        UPDATE hit_notification 
+        SET is_read = '1', read_time = NOW()
+        WHERE notification_id IN
+        <foreach collection="notificationIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND user_id = #{userId}
+        AND is_read = '0'
+    </update>
+
+    <!-- 标记所有通知为已读 -->
+    <update id="markAllAsRead">
+        UPDATE hit_notification 
+        SET is_read = '1', read_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_read = '0'
+    </update>
+
+    <!-- 查询用户未读通知数量 -->
+    <select id="countUnreadNotifications" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM hit_notification
+        WHERE user_id = #{userId}
+        AND is_read = '0'
+    </select>
+
+    <!-- 删除用户的已读通知 -->
+    <delete id="deleteReadNotifications">
+        DELETE FROM hit_notification
+        WHERE notification_id IN
+        <foreach collection="notificationIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND user_id = #{userId}
+        AND is_read = '1'
+    </delete>
+
+    <!-- 查询通知详情（包含发送者和接收者信息） -->
+    <select id="selectNotificationWithUserInfo" resultMap="HitNotificationResult">
+        SELECT 
+            n.notification_id,
+            n.user_id,
+            n.sender_id,
+            n.notification_type,
+            n.title,
+            n.content,
+            n.related_id,
+            n.related_type,
+            n.action_url,
+            n.is_read,
+            n.read_time,
+            n.priority,
+            n.channel,
+            n.send_status,
+            n.send_time,
+            n.create_time,
+            sender.nick_name as sender_name,
+            receiver.nick_name as receiver_name
+        FROM hit_notification n
+        LEFT JOIN sys_user sender ON n.sender_id = sender.user_id
+        LEFT JOIN sys_user receiver ON n.user_id = receiver.user_id
+        WHERE n.notification_id = #{notificationId}
+    </select>
+
+</mapper>

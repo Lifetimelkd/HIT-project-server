@@ -20,6 +20,7 @@
         <module>hit-user-skill</module>
         <module>hit-user-portfolio</module>
         <module>hit-project-management</module>
+        <module>hit-notification</module>
     </modules>
 
     <artifactId>ruoyi-modules</artifactId>

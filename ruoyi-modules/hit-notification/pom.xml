@@ -3,16 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>org.dromara</groupId>
         <artifactId>ruoyi-modules</artifactId>
+        <groupId>org.dromara</groupId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hit-project-management</artifactId>
+    <artifactId>hit-notification</artifactId>
 
     <description>
-        项目管理模块
+        HIT通知管理模块
     </description>
 
     <dependencies>

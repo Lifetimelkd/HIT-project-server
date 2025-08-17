@@ -119,6 +119,12 @@
             <artifactId>hit-project-management</artifactId>
         </dependency>
 
+<!--        通知管理模块-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>hit-notification</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>

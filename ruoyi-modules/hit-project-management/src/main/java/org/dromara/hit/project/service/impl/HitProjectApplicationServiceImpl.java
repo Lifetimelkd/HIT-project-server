@@ -23,6 +23,7 @@ import org.dromara.hit.project.service.IHitProjectRoleService;
 import org.dromara.system.service.ISysNoticeService;
 import org.dromara.system.domain.bo.SysNoticeBo;
 import org.dromara.common.sse.utils.SseMessageUtils;
+import org.dromara.hit.notification.service.IHitNotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,7 @@ public class HitProjectApplicationServiceImpl implements IHitProjectApplicationS
     private final IHitProjectMemberService memberService;
     private final IHitProjectRoleService roleService;
     private final ISysNoticeService noticeService;
+    private final IHitNotificationService hitNotificationService;
 
     /**
      * 查询项目申请
@@ -472,57 +474,40 @@ public class HitProjectApplicationServiceImpl implements IHitProjectApplicationS
      */
     private void sendApplicationNotification(Long userId, HitProject project, String status, String reviewResult, Long applicationId) {
         try {
-            // 创建系统通知
-            SysNoticeBo noticeBo = new SysNoticeBo();
-            noticeBo.setNoticeType("1"); // 1通知 2公告
-            noticeBo.setStatus("0"); // 0正常 1关闭
-
             String noticeTitle;
             String noticeContent;
-            String sseMessage;
+            String notificationType;
 
             if ("approved".equals(status)) {
                 noticeTitle = "项目申请通过通知";
                 noticeContent = String.format("恭喜！您申请加入项目「%s」的申请已通过审核。%s",
                     project.getProjectName(),
                     StringUtils.isNotBlank(reviewResult) ? "\n审核意见：" + reviewResult : "");
-                // SSE消息也包含审核意见
-                sseMessage = String.format("[项目申请通过] 您申请加入项目「%s」的申请已通过审核%s",
-                    project.getProjectName(),
-                    StringUtils.isNotBlank(reviewResult) ? "，审核意见：" + reviewResult : "");
+                notificationType = "approval";
             } else if ("rejected".equals(status)) {
                 noticeTitle = "项目申请拒绝通知";
                 noticeContent = String.format("很遗憾，您申请加入项目「%s」的申请未通过审核。%s",
                     project.getProjectName(),
                     StringUtils.isNotBlank(reviewResult) ? "\n拒绝理由：" + reviewResult : "");
-                // SSE消息也包含拒绝理由
-                sseMessage = String.format("[项目申请拒绝] 您申请加入项目「%s」的申请未通过审核%s",
-                    project.getProjectName(),
-                    StringUtils.isNotBlank(reviewResult) ? "，拒绝理由：" + reviewResult : "");
+                notificationType = "approval";
             } else {
                 // 其他状态不发送通知
                 return;
             }
 
-            noticeBo.setNoticeTitle(noticeTitle);
-            noticeBo.setNoticeContent(noticeContent);
-            noticeBo.setRemark("项目申请审核通知 - 申请ID:" + applicationId + ", 用户ID:" + userId);
+            // 使用新的通知服务发送项目相关通知
+            Boolean result = hitNotificationService.sendProjectNotification(
+                userId,
+                noticeTitle,
+                noticeContent,
+                project.getProjectId(),
+                notificationType
+            );
 
-            // 保存系统通知到数据库
-            int result = noticeService.insertNotice(noticeBo);
-
-            if (result > 0) {
-                // 发送SSE实时通知给指定用户
-                try {
-                    SseMessageUtils.sendMessage(userId, sseMessage);
-                    System.out.println("SSE通知发送成功 - 用户ID: " + userId + ", 消息: " + sseMessage);
-                } catch (Exception sseException) {
-                    System.err.println("SSE通知发送失败 - 用户ID: " + userId + ", 错误: " + sseException.getMessage());
-                }
-
+            if (result) {
                 System.out.println("项目申请通知发送成功 - 用户ID: " + userId + ", 申请ID: " + applicationId + ", 状态: " + status);
             } else {
-                System.err.println("系统通知保存失败 - 用户ID: " + userId + ", 申请ID: " + applicationId);
+                System.err.println("项目申请通知发送失败 - 用户ID: " + userId + ", 申请ID: " + applicationId);
             }
 
         } catch (Exception e) {
