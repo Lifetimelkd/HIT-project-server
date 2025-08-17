@@ -164,6 +164,7 @@ public class HitUserSkillServiceImpl implements IHitUserSkillService {
         HitUserSkill userSkill = baseMapper.selectById(userSkillId);
         if (userSkill != null) {
             userSkill.setIsCertified(1);
+            userSkill.setCertifiedRemark(certifiedRemark);
             return baseMapper.updateById(userSkill) > 0;
         }
         return false;

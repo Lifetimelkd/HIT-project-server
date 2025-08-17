@@ -39,7 +39,7 @@ public class HitUserProfileController extends BaseController {
     /**
      * 查询用户扩展档案列表
      */
-    @SaCheckPermission("hitUserProfile:userProfile:list")
+//    @SaCheckPermission("hitUserProfile:userProfile:list")
     @GetMapping("/list")
     public TableDataInfo<HitUserProfileVo> list(HitUserProfileBo bo, PageQuery pageQuery) {
         return hitUserProfileService.queryPageList(bo, pageQuery);
@@ -48,7 +48,7 @@ public class HitUserProfileController extends BaseController {
     /**
      * 导出用户扩展档案列表
      */
-    @SaCheckPermission("hitUserProfile:userProfile:export")
+//    @SaCheckPermission("hitUserProfile:userProfile:export")
     @Log(title = "用户扩展档案", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HitUserProfileBo bo, HttpServletResponse response) {
@@ -61,7 +61,7 @@ public class HitUserProfileController extends BaseController {
      *
      * @param profileId 主键
      */
-    @SaCheckPermission("hitUserProfile:userProfile:query")
+//    @SaCheckPermission("hitUserProfile:userProfile:query")
     @GetMapping("/{profileId}")
     public R<HitUserProfileVo> getInfo(@NotNull(message = "主键不能为空")
                                      @PathVariable Long profileId) {
@@ -71,16 +71,25 @@ public class HitUserProfileController extends BaseController {
     /**
      * 获取当前用户的档案信息
      */
-    @SaCheckPermission("hitUserProfile:userProfile:query")
+//    @SaCheckPermission("hitUserProfile:userProfile:query")
     @GetMapping("/current")
     public R<HitUserProfileVo> getCurrentUserProfile() {
         return R.ok(hitUserProfileService.queryCurrentUserProfile());
     }
 
     /**
+     * 根据用户ID获取用户扩展档案信息
+     */
+    @GetMapping("/user/{userId}")
+    public R<HitUserProfileVo> getByUserId(@NotNull(message = "用户ID不能为空")
+                                           @PathVariable Long userId) {
+        return R.ok(hitUserProfileService.queryByUserId(userId));
+    }
+
+    /**
      * 新增用户扩展档案
      */
-    @SaCheckPermission("hitUserProfile:userProfile:add")
+//    @SaCheckPermission("hitUserProfile:userProfile:add")
     @Log(title = "用户扩展档案", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
@@ -91,7 +100,7 @@ public class HitUserProfileController extends BaseController {
     /**
      * 修改用户扩展档案
      */
-    @SaCheckPermission("hitUserProfile:userProfile:edit")
+//    @SaCheckPermission("hitUserProfile:userProfile:edit")
     @Log(title = "用户扩展档案", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
@@ -104,7 +113,7 @@ public class HitUserProfileController extends BaseController {
      *
      * @param profileIds 主键串
      */
-    @SaCheckPermission("hitUserProfile:userProfile:remove")
+//    @SaCheckPermission("hitUserProfile:userProfile:remove")
     @Log(title = "用户扩展档案", businessType = BusinessType.DELETE)
     @DeleteMapping("/{profileIds}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")

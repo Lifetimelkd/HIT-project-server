@@ -4,9 +4,9 @@ import org.dromara.hit.project.domain.vo.HitProjectVo;
 import org.dromara.hit.project.domain.bo.HitProjectBo;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.hit.project.controller.HitProjectController.AdminStatisticsVo;
-import org.dromara.hit.project.controller.HitProjectController.TrendDataVo;
-import org.dromara.hit.project.controller.HitProjectController.TypeDistributionVo;
+import org.dromara.hit.project.domain.vo.AdminStatisticsVo;
+import org.dromara.hit.project.domain.vo.TrendDataVo;
+import org.dromara.hit.project.domain.vo.TypeDistributionVo;
 
 import java.util.Collection;
 import java.util.List;

@@ -108,6 +108,8 @@ public class HitUserProfileServiceImpl implements IHitUserProfileService {
      */
     @Override
     public Boolean insertByBo(HitUserProfileBo bo) {
+        Long userId = LoginHelper.getUserId();
+        bo.setUserId(userId);
         HitUserProfile add = MapstructUtils.convert(bo, HitUserProfile.class);
         validEntityBeforeSave(add);
         boolean flag = baseMapper.insert(add) > 0;
@@ -162,6 +164,22 @@ public class HitUserProfileServiceImpl implements IHitUserProfileService {
         Long currentUserId = LoginHelper.getUserId();
         LambdaQueryWrapper<HitUserProfile> lqw = Wrappers.lambdaQuery();
         lqw.eq(HitUserProfile::getUserId, currentUserId);
+        return baseMapper.selectVoOne(lqw);
+    }
+
+
+    /**
+     * 根据用户ID获取用户扩展档案信息
+     * @param userId
+     * @return
+     */
+    @Override
+    public HitUserProfileVo queryByUserId(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        LambdaQueryWrapper<HitUserProfile> lqw = Wrappers.lambdaQuery();
+        lqw.eq(HitUserProfile::getUserId, userId);
         return baseMapper.selectVoOne(lqw);
     }
 }

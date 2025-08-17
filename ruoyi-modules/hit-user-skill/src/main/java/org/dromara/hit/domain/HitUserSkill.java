@@ -53,6 +53,11 @@ public class HitUserSkill extends TenantEntity {
     private String certificateUrl;
 
     /**
+     * 认证备注
+     */
+    private String certifiedRemark;
+
+    /**
      * 学习时长(月)
      */
     private Integer learningTime;

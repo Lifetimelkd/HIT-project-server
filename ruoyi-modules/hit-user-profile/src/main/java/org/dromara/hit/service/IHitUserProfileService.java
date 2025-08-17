@@ -72,4 +72,6 @@ public interface IHitUserProfileService {
      * @return 当前用户档案
      */
     HitUserProfileVo queryCurrentUserProfile();
+
+    HitUserProfileVo queryByUserId(Long userId);
 }

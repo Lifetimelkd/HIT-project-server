@@ -2,8 +2,10 @@ package org.dromara.hit.domain;
 
 import org.dromara.common.tenant.core.TenantEntity;
 import com.baomidou.mybatisplus.annotation.*;
+import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.dromara.hit.domain.vo.HitUserProfileVo;
 
 import java.io.Serial;
 
@@ -16,6 +18,7 @@ import java.io.Serial;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("hit_user_profile")
+@AutoMapper(target = HitUserProfileVo.class)
 public class HitUserProfile extends TenantEntity {
 
     @Serial

@@ -9,15 +9,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
+import org.dromara.system.domain.SysUser;
+import org.dromara.system.mapper.SysUserMapper;
 import org.springframework.stereotype.Service;
 import org.dromara.hit.project.domain.bo.HitProjectBo;
 import org.dromara.hit.project.domain.vo.HitProjectVo;
 import org.dromara.hit.project.domain.HitProject;
 import org.dromara.hit.project.mapper.HitProjectMapper;
 import org.dromara.hit.project.service.IHitProjectService;
-import org.dromara.hit.project.controller.HitProjectController.AdminStatisticsVo;
-import org.dromara.hit.project.controller.HitProjectController.TrendDataVo;
-import org.dromara.hit.project.controller.HitProjectController.TypeDistributionVo;
+import org.dromara.hit.project.domain.vo.AdminStatisticsVo;
+import org.dromara.hit.project.domain.vo.TrendDataVo;
+import org.dromara.hit.project.domain.vo.TypeDistributionVo;
 import org.dromara.hit.project.domain.HitProjectRole;
 import org.dromara.hit.project.domain.HitProjectMember;
 import org.dromara.hit.project.mapper.HitProjectRoleMapper;
@@ -44,13 +46,19 @@ public class HitProjectServiceImpl implements IHitProjectService {
     private final HitProjectMapper baseMapper;
     private final HitProjectRoleMapper projectRoleMapper;
     private final HitProjectMemberMapper projectMemberMapper;
+    private final SysUserMapper sysUserMapper;
 
     /**
      * 查询项目信息
      */
     @Override
     public HitProjectVo queryById(Long projectId){
-        return baseMapper.selectVoById(projectId);
+        HitProjectVo hitProjectVo = baseMapper.selectVoById(projectId);
+        Long creatorId = hitProjectVo.getCreatorId();
+        SysUser sysUser = sysUserMapper.selectById(creatorId);
+        String nickName = sysUser.getNickName();
+        hitProjectVo.setCreatorName(nickName);
+        return hitProjectVo;
     }
 
     /**
@@ -120,7 +128,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
         boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
             bo.setProjectId(add.getProjectId());
-            
+
             // 项目创建成功后，创建项目负责人角色并将创建者添加为成员
             try {
                 createLeaderRoleAndAddCreator(add.getProjectId(), add.getCreatorId());
@@ -131,7 +139,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
         }
         return flag;
     }
-    
+
     /**
      * 创建项目负责人角色并添加创建者为成员
      */
@@ -148,9 +156,9 @@ public class HitProjectServiceImpl implements IHitProjectService {
         leaderRole.setIsLeader("1"); // 这是领导角色
         leaderRole.setPriority(1); // 最高优先级
         leaderRole.setStatus("0"); // 招募中
-        
+
         projectRoleMapper.insert(leaderRole);
-        
+
         // 然后创建成员记录
         HitProjectMember member = new HitProjectMember();
         member.setProjectId(projectId);
@@ -165,7 +173,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
         member.setWorkHours(BigDecimal.ZERO);
         member.setPerformanceRating(BigDecimal.ZERO);
         member.setIsLeader("1"); // 设置为领导
-        
+
         projectMemberMapper.insert(member);
     }
 
@@ -213,7 +221,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
      */
     @Override
     public Boolean incrementViewCount(Long projectId) {
-        return baseMapper.update(null, 
+        return baseMapper.update(null,
             Wrappers.lambdaUpdate(HitProject.class)
                 .setSql("view_count = view_count + 1")
                 .eq(HitProject::getProjectId, projectId)) > 0;
@@ -273,18 +281,18 @@ public class HitProjectServiceImpl implements IHitProjectService {
     @Override
     public AdminStatisticsVo getAdminStatistics() {
         AdminStatisticsVo statistics = new AdminStatisticsVo();
-        
+
         // 统计项目数据
         Long totalProjects = baseMapper.selectCount(new LambdaQueryWrapper<HitProject>());
         Long activeProjects = baseMapper.selectCount(new LambdaQueryWrapper<HitProject>()
             .eq(HitProject::getStatus, "active"));
         Long completedProjects = baseMapper.selectCount(new LambdaQueryWrapper<HitProject>()
             .eq(HitProject::getStatus, "completed"));
-        
+
         statistics.setTotalProjects(totalProjects);
         statistics.setActiveProjects(activeProjects);
         statistics.setCompletedProjects(completedProjects);
-        
+
         // TODO: 这里需要集成成员管理和申请管理的统计数据
         // 暂时设置为0，等待相关模块完善
         statistics.setTotalMembers(0L);
@@ -292,7 +300,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
         statistics.setPendingApplications(0L);
         statistics.setProjectsIncrease(0L);
         statistics.setMembersIncrease(0L);
-        
+
         return statistics;
     }
 
@@ -300,7 +308,7 @@ public class HitProjectServiceImpl implements IHitProjectService {
     public List<TrendDataVo> getProjectTrends(String startDate, String endDate) {
         // TODO: 实现项目创建趋势统计
         List<TrendDataVo> trends = new ArrayList<>();
-        
+
         // 暂时返回空列表，需要根据实际需求实现复杂的统计查询
         return trends;
     }
@@ -308,21 +316,21 @@ public class HitProjectServiceImpl implements IHitProjectService {
     @Override
     public List<TypeDistributionVo> getProjectTypeDistribution() {
         List<TypeDistributionVo> distribution = new ArrayList<>();
-        
+
         // 统计各种项目类型的数量
         String[] types = {"academic", "competition", "practice", "graduation", "course"};
         String[] typeNames = {"学术研究", "竞赛项目", "实践项目", "毕业设计", "课程项目"};
-        
+
         for (int i = 0; i < types.length; i++) {
             String type = types[i];
             String typeName = typeNames[i];
-            
+
             Long count = baseMapper.selectCount(new LambdaQueryWrapper<HitProject>()
                 .eq(HitProject::getProjectType, type));
-                
+
             distribution.add(new TypeDistributionVo(type, typeName, count));
         }
-        
+
         return distribution;
     }
 
@@ -342,4 +350,4 @@ public class HitProjectServiceImpl implements IHitProjectService {
         Long count = baseMapper.checkUserCollected(projectId, userId);
         return count != null && count > 0;
     }
-} 
+}

@@ -21,6 +21,9 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.hit.project.domain.vo.HitProjectVo;
 import org.dromara.hit.project.domain.bo.HitProjectBo;
 import org.dromara.hit.project.service.IHitProjectService;
+import org.dromara.hit.project.domain.vo.AdminStatisticsVo;
+import org.dromara.hit.project.domain.vo.TrendDataVo;
+import org.dromara.hit.project.domain.vo.TypeDistributionVo;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 
 /**
@@ -252,85 +255,4 @@ public class HitProjectController extends BaseController {
         }
     }
 
-    /**
-     * 管理后台统计数据VO
-     */
-    public static class AdminStatisticsVo {
-        private Long totalProjects;
-        private Long activeProjects;
-        private Long completedProjects;
-        private Long pendingApplications;
-        private Long totalMembers;
-        private Long activeMembers;
-        private Long projectsIncrease;
-        private Long membersIncrease;
-
-        // Getters and Setters
-        public Long getTotalProjects() { return totalProjects; }
-        public void setTotalProjects(Long totalProjects) { this.totalProjects = totalProjects; }
-        
-        public Long getActiveProjects() { return activeProjects; }
-        public void setActiveProjects(Long activeProjects) { this.activeProjects = activeProjects; }
-        
-        public Long getCompletedProjects() { return completedProjects; }
-        public void setCompletedProjects(Long completedProjects) { this.completedProjects = completedProjects; }
-        
-        public Long getPendingApplications() { return pendingApplications; }
-        public void setPendingApplications(Long pendingApplications) { this.pendingApplications = pendingApplications; }
-        
-        public Long getTotalMembers() { return totalMembers; }
-        public void setTotalMembers(Long totalMembers) { this.totalMembers = totalMembers; }
-        
-        public Long getActiveMembers() { return activeMembers; }
-        public void setActiveMembers(Long activeMembers) { this.activeMembers = activeMembers; }
-        
-        public Long getProjectsIncrease() { return projectsIncrease; }
-        public void setProjectsIncrease(Long projectsIncrease) { this.projectsIncrease = projectsIncrease; }
-        
-        public Long getMembersIncrease() { return membersIncrease; }
-        public void setMembersIncrease(Long membersIncrease) { this.membersIncrease = membersIncrease; }
-    }
-
-    /**
-     * 趋势数据VO
-     */
-    public static class TrendDataVo {
-        private String date;
-        private Long count;
-
-        public TrendDataVo(String date, Long count) {
-            this.date = date;
-            this.count = count;
-        }
-
-        public String getDate() { return date; }
-        public void setDate(String date) { this.date = date; }
-        
-        public Long getCount() { return count; }
-        public void setCount(Long count) { this.count = count; }
-    }
-
-    /**
-     * 类型分布数据VO
-     */
-    public static class TypeDistributionVo {
-        private String type;
-        private String typeName;
-        private Long count;
-
-        public TypeDistributionVo(String type, String typeName, Long count) {
-            this.type = type;
-            this.typeName = typeName;
-            this.count = count;
-        }
-
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-        
-        public String getTypeName() { return typeName; }
-        public void setTypeName(String typeName) { this.typeName = typeName; }
-        
-        public Long getCount() { return count; }
-        public void setCount(Long count) { this.count = count; }
-    }
-} 
+}

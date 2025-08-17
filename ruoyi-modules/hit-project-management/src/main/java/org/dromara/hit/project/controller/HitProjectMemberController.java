@@ -363,4 +363,124 @@ public class HitProjectMemberController extends BaseController {
         }
     }
 
+    // ==================== 技能管理接口 ====================
+
+    /**
+     * 获取项目成员技能列表
+     */
+    @GetMapping("/skills/{memberId}")
+    public R<List<Object>> getMemberSkills(@PathVariable Long memberId) {
+        // 通过成员ID获取用户ID，然后调用用户技能服务
+        HitProjectMemberVo member = memberService.queryById(memberId);
+        if (member == null) {
+            return R.fail("成员不存在");
+        }
+        
+        // 这里需要调用用户技能服务，暂时返回空列表
+        // TODO: 集成用户技能服务
+        return R.ok(java.util.Collections.emptyList());
+    }
+
+    /**
+     * 为项目成员添加技能
+     */
+    @SaCheckPermission("hit:project:member:edit")
+    @Log(title = "添加成员技能", businessType = BusinessType.INSERT)
+    @PostMapping("/skills/{memberId}")
+    public R<Void> addMemberSkill(@PathVariable Long memberId,
+                                 @RequestParam Long tagId,
+                                 @RequestParam Integer skillLevel,
+                                 @RequestParam(required = false) Integer learningTime,
+                                 @RequestParam(required = false) Integer projectCount,
+                                 @RequestParam(required = false) String description) {
+        // 验证成员存在
+        HitProjectMemberVo member = memberService.queryById(memberId);
+        if (member == null) {
+            return R.fail("成员不存在");
+        }
+        
+        // TODO: 调用用户技能服务添加技能
+        // hitUserSkillService.insertByBo(skillBo);
+        
+        return R.ok();
+    }
+
+    /**
+     * 更新项目成员技能
+     */
+    @SaCheckPermission("hit:project:member:edit")
+    @Log(title = "更新成员技能", businessType = BusinessType.UPDATE)
+    @PutMapping("/skills/{memberId}/{userSkillId}")
+    public R<Void> updateMemberSkill(@PathVariable Long memberId,
+                                   @PathVariable Long userSkillId,
+                                   @RequestParam Integer skillLevel,
+                                   @RequestParam(required = false) Integer learningTime,
+                                   @RequestParam(required = false) Integer projectCount,
+                                   @RequestParam(required = false) String description) {
+        // 验证成员存在
+        HitProjectMemberVo member = memberService.queryById(memberId);
+        if (member == null) {
+            return R.fail("成员不存在");
+        }
+        
+        // TODO: 调用用户技能服务更新技能
+        // hitUserSkillService.updateByBo(skillBo);
+        
+        return R.ok();
+    }
+
+    /**
+     * 删除项目成员技能
+     */
+    @SaCheckPermission("hit:project:member:edit")
+    @Log(title = "删除成员技能", businessType = BusinessType.DELETE)
+    @DeleteMapping("/skills/{memberId}/{userSkillIds}")
+    public R<Void> deleteMemberSkills(@PathVariable Long memberId,
+                                    @PathVariable Long[] userSkillIds) {
+        // 验证成员存在
+        HitProjectMemberVo member = memberService.queryById(memberId);
+        if (member == null) {
+            return R.fail("成员不存在");
+        }
+        
+        // TODO: 调用用户技能服务删除技能
+        // hitUserSkillService.deleteWithValidByIds(List.of(userSkillIds), true);
+        
+        return R.ok();
+    }
+
+    /**
+     * 批量管理项目成员技能
+     */
+    @SaCheckPermission("hit:project:member:edit")
+    @Log(title = "批量管理成员技能", businessType = BusinessType.UPDATE)
+    @PostMapping("/skills/batch/{memberId}")
+    public R<Void> batchManageMemberSkills(@PathVariable Long memberId,
+                                         @RequestBody List<Object> skillList) {
+        // 验证成员存在
+        HitProjectMemberVo member = memberService.queryById(memberId);
+        if (member == null) {
+            return R.fail("成员不存在");
+        }
+        
+        // TODO: 调用用户技能服务批量保存技能
+        // hitUserSkillService.batchSaveUserSkills(member.getUserId(), skillList);
+        
+        return R.ok();
+    }
+
+    /**
+     * 认证项目成员技能
+     */
+    @SaCheckPermission("hit:project:member:evaluate")
+    @Log(title = "认证成员技能", businessType = BusinessType.UPDATE)
+    @PostMapping("/skills/certify/{userSkillId}")
+    public R<Void> certifyMemberSkill(@PathVariable Long userSkillId,
+                                    @RequestParam String certifiedRemark) {
+        // TODO: 调用用户技能服务认证技能
+        // hitUserSkillService.certifySkill(userSkillId, certifiedRemark);
+        
+        return R.ok();
+    }
+
 } 

@@ -33,7 +33,7 @@ public class HitUserProfileBo extends BaseEntity {
     /**
      * 学号
      */
-    @NotBlank(message = "学号不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "学号不能为空", groups = { AddGroup.class, EditGroup.class })
     private String studentId;
 
     /**
@@ -45,37 +45,37 @@ public class HitUserProfileBo extends BaseEntity {
     /**
      * 所属学院
      */
-    @NotBlank(message = "所属学院不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "所属学院不能为空", groups = { AddGroup.class, EditGroup.class })
     private String college;
 
     /**
      * 专业
      */
-    @NotBlank(message = "专业不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "专业不能为空", groups = { AddGroup.class, EditGroup.class })
     private String major;
 
     /**
      * 年级
      */
-    @NotBlank(message = "年级不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "年级不能为空", groups = { AddGroup.class, EditGroup.class })
     private String grade;
 
     /**
      * 班级
      */
-    @NotBlank(message = "班级不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "班级不能为空", groups = { AddGroup.class, EditGroup.class })
     private String className;
 
     /**
      * 手机号
      */
-    @NotBlank(message = "手机号不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "手机号不能为空", groups = { AddGroup.class, EditGroup.class })
     private String phone;
 
     /**
      * 邮箱
      */
-    @NotBlank(message = "邮箱不能为空", groups = { AddGroup.class, EditGroup.class })
+//    @NotBlank(message = "邮箱不能为空", groups = { AddGroup.class, EditGroup.class })
     private String email;
 
     /**

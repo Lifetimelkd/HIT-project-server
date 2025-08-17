@@ -173,4 +173,9 @@ public class HitProjectVo implements Serializable {
      */
     private LocalDateTime createTime;
 
-} 
+    /**
+     * 项目负责人
+     */
+    private String creatorName;
+
+}
