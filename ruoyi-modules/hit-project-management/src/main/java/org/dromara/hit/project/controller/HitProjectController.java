@@ -255,4 +255,12 @@ public class HitProjectController extends BaseController {
         }
     }
 
+    /**
+     * 查询用户参与的项目列表（作为成员）
+     */
+    @GetMapping("/my/member-projects")
+    public TableDataInfo<HitProjectVo> listMyMemberProjects(HitProjectBo bo, PageQuery pageQuery) {
+        return hitProjectService.queryMyMemberProjects(bo, pageQuery);
+    }
+
 }

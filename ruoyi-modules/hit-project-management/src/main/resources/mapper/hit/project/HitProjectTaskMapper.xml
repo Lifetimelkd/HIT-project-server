@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitProjectTaskMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.vo.HitProjectTaskVo" id="HitProjectTaskResult">
+        <result property="taskId"           column="task_id"            />
+        <result property="projectId"        column="project_id"         />
+        <result property="projectName"      column="project_name"       />
+        <result property="parentTaskId"     column="parent_task_id"     />
+        <result property="parentTaskName"   column="parent_task_name"   />
+        <result property="taskName"         column="task_name"          />
+        <result property="taskDescription"  column="task_description"   />
+        <result property="taskType"         column="task_type"          />
+        <result property="priority"         column="priority"           />
+        <result property="status"           column="status"             />
+        <result property="progress"         column="progress"           />
+        <result property="assigneeId"       column="assignee_id"        />
+        <result property="assigneeName"     column="assignee_name"      />
+        <result property="creatorId"        column="creator_id"         />
+        <result property="creatorName"      column="creator_name"       />
+        <result property="estimatedHours"   column="estimated_hours"    />
+        <result property="actualHours"      column="actual_hours"       />
+        <result property="startDate"        column="start_date"         />
+        <result property="dueDate"          column="due_date"           />
+        <result property="completedDate"    column="completed_date"     />
+        <result property="dependencies"     column="dependencies"       />
+        <result property="tags"             column="tags"               />
+        <result property="attachments"      column="attachments"        />
+        <result property="isMilestone"      column="is_milestone"       />
+        <result property="userId"           column="user_id"            />
+        <result property="deptId"           column="dept_id"            />
+        <result property="createTime"       column="create_time"        />
+        <result property="updateTime"       column="update_time"        />
+        <result property="subTaskCount"     column="sub_task_count"     />
+        <result property="commentCount"     column="comment_count"      />
+    </resultMap>
+
+    <sql id="selectHitProjectTaskVo">
+        select t.task_id, t.project_id, t.parent_task_id, t.task_name, t.task_description, 
+               t.task_type, t.priority, t.status, t.progress, t.assignee_id, t.creator_id,
+               t.estimated_hours, t.actual_hours, t.start_date, t.due_date, t.completed_date,
+               t.dependencies, t.tags, t.attachments, t.is_milestone, t.user_id, t.dept_id,
+               t.create_time, t.update_time,
+               p.project_name,
+               pt.task_name as parent_task_name,
+               u1.nick_name as assignee_name,
+               u2.nick_name as creator_name,
+               (select count(*) from hit_project_task st where st.parent_task_id = t.task_id) as sub_task_count,
+               (select count(*) from hit_task_comment tc where tc.task_id = t.task_id) as comment_count
+        from hit_project_task t
+        left join hit_project p on t.project_id = p.project_id
+        left join hit_project_task pt on t.parent_task_id = pt.task_id
+        left join sys_user u1 on t.assignee_id = u1.user_id
+        left join sys_user u2 on t.creator_id = u2.user_id
+    </sql>
+
+    <!-- 查询任务详情（包含关联信息） -->
+    <select id="selectTaskWithDetails" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.task_id = #{taskId}
+    </select>
+
+    <!-- 查询项目的所有任务 -->
+    <select id="selectTasksByProjectId" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.project_id = #{projectId}
+        order by t.create_time desc
+    </select>
+
+    <!-- 查询用户负责的任务 -->
+    <select id="selectTasksByAssigneeId" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.assignee_id = #{assigneeId}
+        order by t.due_date asc, t.priority desc
+    </select>
+
+    <!-- 查询用户创建的任务 -->
+    <select id="selectTasksByCreatorId" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.creator_id = #{creatorId}
+        order by t.create_time desc
+    </select>
+
+    <!-- 查询父任务的子任务 -->
+    <select id="selectSubTasks" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.parent_task_id = #{parentTaskId}
+        order by t.create_time asc
+    </select>
+
+    <!-- 查询项目的里程碑任务 -->
+    <select id="selectMilestoneTasks" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.project_id = #{projectId} and t.is_milestone = '1'
+        order by t.due_date asc
+    </select>
+
+    <!-- 查询即将到期的任务 -->
+    <select id="selectTasksDueSoon" parameterType="Integer" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.due_date between curdate() and date_add(curdate(), interval #{days} day)
+        and t.status not in ('done', 'cancelled')
+        order by t.due_date asc
+    </select>
+
+    <!-- 查询逾期的任务 -->
+    <select id="selectOverdueTasks" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.due_date &lt; curdate()
+        and t.status not in ('done', 'cancelled')
+        order by t.due_date asc
+    </select>
+
+    <!-- 查询项目下可选的父任务（未过期且未完成的任务） -->
+    <select id="selectAvailableParentTasks" parameterType="Long" resultMap="HitProjectTaskResult">
+        <include refid="selectHitProjectTaskVo"/>
+        where t.project_id = #{projectId}
+        and t.status not in ('done', 'cancelled')
+        and (t.due_date is null or t.due_date &gt;= curdate())
+        order by t.create_time desc
+    </select>
+
+    <!-- 统计项目任务数量（按状态分组） -->
+    <select id="countTasksByStatus" parameterType="Long" resultType="java.util.Map">
+        select status, count(*) as count
+        from hit_project_task
+        where project_id = #{projectId}
+        group by status
+    </select>
+
+    <!-- 统计用户任务数量（按状态分组） -->
+    <select id="countUserTasksByStatus" parameterType="Long" resultType="java.util.Map">
+        select status, count(*) as count
+        from hit_project_task
+        where assignee_id = #{userId}
+        group by status
+    </select>
+
+    <!-- 更新任务状态 -->
+    <update id="updateTaskStatus">
+        update hit_project_task
+        set status = #{status},
+            update_by = #{userId},
+            update_time = now()
+        <if test="status == 'done'">
+            , completed_date = now(),
+              progress = 100
+        </if>
+        where task_id = #{taskId}
+    </update>
+
+    <!-- 更新任务进度 -->
+    <update id="updateTaskProgress">
+        update hit_project_task
+        set progress = #{progress},
+            update_by = #{userId},
+            update_time = now()
+        <if test="progress == 100">
+            , status = 'done',
+              completed_date = now()
+        </if>
+        where task_id = #{taskId}
+    </update>
+
+    <!-- 批量更新任务负责人 -->
+    <update id="batchUpdateAssignee">
+        update hit_project_task
+        set assignee_id = #{assigneeId},
+            update_by = #{userId},
+            update_time = now()
+        where task_id in
+        <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </update>
+
+    <!-- 检查任务是否存在循环依赖 -->
+    <select id="checkCircularDependency" resultType="boolean">
+        WITH RECURSIVE task_deps AS (
+            SELECT task_id, dependencies
+            FROM hit_project_task
+            WHERE task_id = #{dependencyId}
+
+            UNION ALL
+
+            SELECT t.task_id, t.dependencies
+            FROM hit_project_task t
+            INNER JOIN task_deps td ON JSON_CONTAINS(t.dependencies, CAST(td.task_id AS JSON))
+        )
+        SELECT COUNT(*) > 0
+        FROM task_deps
+        WHERE task_id = #{taskId}
+    </select>
+
+    <!-- ==================== 统计相关查询 ==================== -->
+
+    <!-- 获取任务概览统计数据 -->
+    <select id="selectOverviewStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalTasks,
+            COUNT(CASE WHEN status = 'done' THEN 1 END) as completedTasks,
+            ROUND(AVG(CASE WHEN progress IS NOT NULL THEN progress ELSE 0 END), 2) as avgProgress,
+            COUNT(CASE WHEN due_date &lt; CURDATE() AND status != 'done' THEN 1 END) as overdueTasks
+        FROM hit_project_task t
+        WHERE 1=1
+        <if test="projectId != null and projectId != ''">
+            AND t.project_id = #{projectId}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND t.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND t.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+        </if>
+    </select>
+
+    <!-- 获取上一期间的概览统计数据 -->
+    <select id="selectPreviousOverviewStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalTasks,
+            COUNT(CASE WHEN status = 'done' THEN 1 END) as completedTasks,
+            ROUND(AVG(CASE WHEN progress IS NOT NULL THEN progress ELSE 0 END), 2) as avgProgress,
+            COUNT(CASE WHEN due_date &lt; CURDATE() AND status != 'done' THEN 1 END) as overdueTasks
+        FROM hit_project_task t
+        WHERE 1=1
+        <if test="projectId != null and projectId != ''">
+            AND t.project_id = #{projectId}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND t.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND t.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+        </if>
+    </select>
+
+    <!-- 获取任务状态分布统计 -->
+    <select id="selectStatusDistribution" resultType="org.dromara.hit.project.domain.vo.TaskStatisticsVo$StatusDistribution">
+        SELECT 
+            status,
+            COUNT(*) as count
+        FROM hit_project_task t
+        WHERE 1=1
+        <if test="projectId != null and projectId != ''">
+            AND t.project_id = #{projectId}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND t.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND t.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+        </if>
+        GROUP BY status
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取任务优先级分布统计 -->
+    <select id="selectPriorityDistribution" resultType="org.dromara.hit.project.domain.vo.TaskStatisticsVo$PriorityDistribution">
+        SELECT 
+            priority,
+            COUNT(*) as count
+        FROM hit_project_task t
+        WHERE 1=1
+        <if test="projectId != null and projectId != ''">
+            AND t.project_id = #{projectId}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND t.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND t.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59')
+        </if>
+        GROUP BY priority
+        ORDER BY 
+            CASE priority 
+                WHEN 'urgent' THEN 1 
+                WHEN 'high' THEN 2 
+                WHEN 'medium' THEN 3 
+                WHEN 'low' THEN 4 
+                ELSE 5 
+            END
+    </select>
+
+    <!-- 获取任务趋势统计数据 -->
+    <select id="selectTaskTrends" resultType="java.util.Map">
+        <choose>
+            <!-- 当有明确时间范围时 -->
+            <when test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                SELECT 
+                    DATE_FORMAT(date_series.date, '%Y-%m') as date,
+                    COALESCE(new_tasks.count, 0) as newTasks,
+                    COALESCE(completed_tasks.count, 0) as completedTasks
+                FROM (
+                    SELECT DATE_FORMAT(#{startDate}, '%Y-%m-01') + INTERVAL n.n MONTH as date
+                    FROM (
+                        SELECT 0 as n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 
+                        UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7
+                        UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11
+                    ) n
+                    WHERE DATE_FORMAT(#{startDate}, '%Y-%m-01') + INTERVAL n.n MONTH &lt;= #{endDate}
+                ) date_series
+                LEFT JOIN (
+                    SELECT 
+                        DATE_FORMAT(create_time, '%Y-%m') as month,
+                        COUNT(*) as count
+                    FROM hit_project_task t
+                    WHERE 1=1
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    AND t.create_time BETWEEN #{startDate} AND CONCAT(#{endDate}, ' 23:59:59')
+                    GROUP BY DATE_FORMAT(create_time, '%Y-%m')
+                ) new_tasks ON DATE_FORMAT(date_series.date, '%Y-%m') = new_tasks.month
+                LEFT JOIN (
+                    SELECT 
+                        DATE_FORMAT(completed_date, '%Y-%m') as month,
+                        COUNT(*) as count
+                    FROM hit_project_task t
+                    WHERE 1=1
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    AND t.status = 'done'
+                    AND t.completed_date BETWEEN #{startDate} AND CONCAT(#{endDate}, ' 23:59:59')
+                    GROUP BY DATE_FORMAT(completed_date, '%Y-%m')
+                ) completed_tasks ON DATE_FORMAT(date_series.date, '%Y-%m') = completed_tasks.month
+                ORDER BY date_series.date
+            </when>
+            <!-- 当没有时间范围时，基于实际数据生成趋势 -->
+            <otherwise>
+                SELECT 
+                    date,
+                    COALESCE(new_tasks.count, 0) as newTasks,
+                    COALESCE(completed_tasks.count, 0) as completedTasks
+                FROM (
+                    SELECT DISTINCT DATE_FORMAT(create_time, '%Y-%m') as date
+                    FROM hit_project_task t
+                    WHERE 1=1
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    AND t.create_time IS NOT NULL
+                    UNION
+                    SELECT DISTINCT DATE_FORMAT(completed_date, '%Y-%m') as date
+                    FROM hit_project_task t
+                    WHERE 1=1
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    AND t.completed_date IS NOT NULL
+                    UNION
+                    SELECT DATE_FORMAT(NOW(), '%Y-%m') as date
+                ) date_series
+                LEFT JOIN (
+                    SELECT 
+                        DATE_FORMAT(create_time, '%Y-%m') as month,
+                        COUNT(*) as count
+                    FROM hit_project_task t
+                    WHERE 1=1
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    GROUP BY DATE_FORMAT(create_time, '%Y-%m')
+                ) new_tasks ON date_series.date = new_tasks.month
+                LEFT JOIN (
+                    SELECT 
+                        DATE_FORMAT(completed_date, '%Y-%m') as month,
+                        COUNT(*) as count
+                    FROM hit_project_task t
+                    WHERE t.status = 'done'
+                    AND t.completed_date IS NOT NULL
+                    <if test="projectId != null and projectId != ''">
+                        AND t.project_id = #{projectId}
+                    </if>
+                    GROUP BY DATE_FORMAT(completed_date, '%Y-%m')
+                ) completed_tasks ON date_series.date = completed_tasks.month
+                ORDER BY date_series.date
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 获取项目任务统计列表 -->
+    <select id="selectProjectStats" resultType="org.dromara.hit.project.domain.vo.TaskStatisticsVo$ProjectStats">
+        SELECT 
+            CAST(p.project_id AS CHAR) as projectId,
+            p.project_name as projectName,
+            COUNT(t.task_id) as totalTasks,
+            COUNT(CASE WHEN t.status = 'done' THEN 1 END) as completedTasks,
+            COUNT(CASE WHEN t.status IN ('doing', 'testing') THEN 1 END) as inProgressTasks,
+            COUNT(CASE WHEN t.status = 'todo' THEN 1 END) as pendingTasks,
+            COUNT(CASE WHEN t.due_date &lt; CURDATE() AND t.status != 'done' THEN 1 END) as overdueTasks,
+            CASE 
+                WHEN COUNT(t.task_id) > 0 THEN 
+                    ROUND(COUNT(CASE WHEN t.status = 'done' THEN 1 END) * 100.0 / COUNT(t.task_id), 0)
+                ELSE 0 
+            END as completionRate,
+            ROUND(AVG(CASE WHEN t.progress IS NOT NULL THEN t.progress ELSE 0 END), 0) as avgProgress
+        FROM hit_project p
+        LEFT JOIN hit_project_task t ON p.project_id = t.project_id
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND (t.create_time IS NULL OR t.create_time &gt;= #{startDate})
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND (t.create_time IS NULL OR t.create_time &lt;= CONCAT(#{endDate}, ' 23:59:59'))
+            </if>
+        </where>
+        GROUP BY p.project_id, p.project_name
+        HAVING COUNT(t.task_id) > 0
+        ORDER BY totalTasks DESC, completionRate DESC
+    </select>
+
+</mapper>
+

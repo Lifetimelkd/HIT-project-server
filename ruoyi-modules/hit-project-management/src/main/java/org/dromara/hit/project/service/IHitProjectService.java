@@ -98,4 +98,10 @@ public interface IHitProjectService {
      * 检查用户是否收藏了项目
      */
     Boolean checkUserCollected(Long projectId, Long userId);
+
+    /**
+     * 查询用户参与的项目列表（作为成员）
+     */
+    TableDataInfo<HitProjectVo> queryMyMemberProjects(HitProjectBo bo, PageQuery pageQuery);
+
 } 

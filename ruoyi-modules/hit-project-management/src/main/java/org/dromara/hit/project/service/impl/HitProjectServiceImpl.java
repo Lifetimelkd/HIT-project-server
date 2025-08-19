@@ -350,4 +350,19 @@ public class HitProjectServiceImpl implements IHitProjectService {
         Long count = baseMapper.checkUserCollected(projectId, userId);
         return count != null && count > 0;
     }
+
+    @Override
+    public TableDataInfo<HitProjectVo> queryMyMemberProjects(HitProjectBo bo, PageQuery pageQuery) {
+        Long currentUserId = LoginHelper.getUserId();
+        
+        // 构建查询条件，只查询用户作为成员参与的项目
+        LambdaQueryWrapper<HitProject> lqw = buildQueryWrapper(bo);
+        
+        // 通过项目成员表关联查询用户参与的项目
+        lqw.inSql(HitProject::getProjectId, 
+                 "SELECT m.project_id FROM hit_project_member m WHERE m.user_id = " + currentUserId);
+        
+        Page<HitProjectVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        return TableDataInfo.build(result);
+    }
 }

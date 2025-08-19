@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.hit.project.mapper.HitTaskCommentMapper">
+
+    <resultMap type="org.dromara.hit.project.domain.vo.HitTaskCommentVo" id="HitTaskCommentResult">
+        <result property="commentId"            column="comment_id"             />
+        <result property="taskId"               column="task_id"                />
+        <result property="taskName"             column="task_name"              />
+        <result property="userId"               column="user_id"                />
+        <result property="userName"             column="user_name"              />
+        <result property="userAvatar"           column="user_avatar"            />
+        <result property="parentCommentId"      column="parent_comment_id"      />
+        <result property="parentCommentContent" column="parent_comment_content" />
+        <result property="parentUserName"       column="parent_user_name"       />
+        <result property="commentContent"       column="comment_content"        />
+        <result property="commentType"          column="comment_type"           />
+        <result property="mentionedUsers"       column="mentioned_users"        />
+        <result property="attachments"          column="attachments"            />
+        <result property="likeCount"            column="like_count"             />
+        <result property="isPinned"             column="is_pinned"              />
+        <result property="deptId"               column="dept_id"                />
+        <result property="createTime"           column="create_time"            />
+        <result property="updateTime"           column="update_time"            />
+    </resultMap>
+
+    <sql id="selectHitTaskCommentVo">
+        select c.comment_id, c.task_id, c.user_id, c.parent_comment_id, c.comment_content,
+               c.comment_type, c.mentioned_users, c.attachments, c.like_count, c.is_pinned,
+               c.dept_id, c.create_time, c.update_time,
+               t.task_name,
+               u.nick_name as user_name,
+               u.avatar as user_avatar,
+               pc.comment_content as parent_comment_content,
+               pu.nick_name as parent_user_name
+        from hit_task_comment c
+        left join hit_project_task t on c.task_id = t.task_id
+        left join sys_user u on c.user_id = u.user_id
+        left join hit_task_comment pc on c.parent_comment_id = pc.comment_id
+        left join sys_user pu on pc.user_id = pu.user_id
+    </sql>
+
+    <!-- 查询评论详情（包含关联信息） -->
+    <select id="selectCommentWithDetails" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.comment_id = #{commentId}
+    </select>
+
+    <!-- 查询任务的所有评论 -->
+    <select id="selectCommentsByTaskId" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.task_id = #{taskId}
+        order by c.is_pinned desc, c.create_time asc
+    </select>
+
+    <!-- 查询任务的顶级评论（不包含回复） -->
+    <select id="selectTopLevelComments" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.task_id = #{taskId} and (c.parent_comment_id = 0 or c.parent_comment_id is null)
+        order by c.is_pinned desc, c.create_time asc
+    </select>
+
+    <!-- 查询评论的回复 -->
+    <select id="selectRepliesByParentId" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.parent_comment_id = #{parentCommentId}
+        order by c.create_time asc
+    </select>
+
+    <!-- 查询用户的评论 -->
+    <select id="selectCommentsByUserId" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.user_id = #{userId}
+        order by c.create_time desc
+    </select>
+
+    <!-- 查询置顶评论 -->
+    <select id="selectPinnedComments" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where c.task_id = #{taskId} and c.is_pinned = '1'
+        order by c.create_time desc
+    </select>
+
+    <!-- 查询提及用户的评论 -->
+    <select id="selectCommentsByMentionedUser" parameterType="Long" resultMap="HitTaskCommentResult">
+        <include refid="selectHitTaskCommentVo"/>
+        where JSON_CONTAINS(c.mentioned_users, CAST(#{userId} AS JSON))
+        order by c.create_time desc
+    </select>
+
+    <!-- 统计任务评论数量 -->
+    <select id="countCommentsByTaskId" parameterType="Long" resultType="int">
+        select count(*) from hit_task_comment where task_id = #{taskId}
+    </select>
+
+    <!-- 统计用户评论数量 -->
+    <select id="countCommentsByUserId" parameterType="Long" resultType="int">
+        select count(*) from hit_task_comment where user_id = #{userId}
+    </select>
+
+    <!-- 更新评论点赞数 -->
+    <update id="updateLikeCount">
+        update hit_task_comment
+        set like_count = like_count + #{increment},
+            update_time = now()
+        where comment_id = #{commentId}
+    </update>
+
+    <!-- 批量删除任务的所有评论 -->
+    <delete id="deleteCommentsByTaskId" parameterType="Long">
+        delete from hit_task_comment where task_id = #{taskId}
+    </delete>
+
+    <!-- 设置评论置顶状态 -->
+    <update id="updatePinnedStatus">
+        update hit_task_comment
+        set is_pinned = #{isPinned},
+            update_by = #{userId},
+            update_time = now()
+        where comment_id = #{commentId}
+    </update>
+
+</mapper>
